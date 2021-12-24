@@ -14,5 +14,5 @@ make up
 
 - try to curl podinfo
 ```
-curl http://172.18.0.3/
+curl http://172.19.0.3/
 ```
