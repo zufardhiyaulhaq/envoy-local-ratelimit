@@ -1,0 +1,41 @@
+version: "2"
+services:
+  envoy:
+    build: .
+    expose:
+      - "80"
+    networks:
+      envoy-http-proxy:
+        ipv4_address: 172.19.0.3
+    restart: always
+    volumes:
+      - ./config.yaml:/etc/config.yaml
+  envoy-tcpdump:
+    network_mode: service:envoy
+    restart: always
+    image: nicolaka/netshoot
+    volumes:
+      - ./network_dump:/tmp/network_dump/
+    command: tcpdump -i eth0 port 80 or port 9898 -w /tmp/network_dump/envoy.pcapng
+  podinfo:
+    expose:
+      - "9898"
+    networks:
+      envoy-http-proxy:
+        ipv4_address: 172.19.0.4
+    restart: always
+    image: stefanprodan/podinfo
+  podinfo-tcpdump:
+    network_mode: service:podinfo
+    restart: always
+    image: nicolaka/netshoot
+    volumes:
+      - ./network_dump:/tmp/network_dump/
+    command: tcpdump -i eth0 port 9898 -w /tmp/network_dump/podinfo.pcapng
+networks:
+  envoy-http-proxy:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.19.0.0/16
+         gateway: 172.19.0.1
